@@ -1,0 +1,253 @@
+<html lang="zh-TW">
+
+    <head>
+        <title>ictye needed girl overdose style living subtitle</title>
+        <style>
+            body {
+                margin: auto;
+
+                height: 100%;
+                position: relative;
+            }
+
+            div#awa {
+
+                position: absolute;
+
+                bottom: 20;
+                right: 50%;
+                transform: translate(50%, 0%);
+
+                line-height: 45px;
+                text-align: center;
+
+                width: 100%;
+                content: " ";
+            }
+
+            .subtittle {
+                font-size: 28px;
+                word-wrap: break-word;
+                text-align: center;
+                display: inline;
+
+
+                background-color: rgba(101, 23, 235, 0.923);
+                color: white;
+
+
+
+                padding: 2px;
+            }
+
+            .boiled {
+                -webkit-text-stroke: 1px;
+                font-weight: bold;
+            }
+        </style>
+        <script>
+            // 要显示的文本
+            let text = ""
+            let NormalDlay = 100
+
+            let statusList = ["NORMAL_OUT"]
+            let fontList = ["NORMAL"]
+            let outtree = []
+
+            // 状态列
+            function getstaus() {
+                return statusList[statusList.length - 1]
+            }
+
+            function setstatus(S) {
+                statusList.push(S)
+            }
+
+            function popstatus() {
+                statusList.pop()
+            }
+
+            // 字体列
+            function getFontstaus() {
+                return fontstatusList[statusList.length - 1]
+            }
+
+            function switchFont(S) {
+                if (fontList[fontList.length - 1] === S) {
+                    fontList.pop()
+                    outtree.pop()
+                } else {
+                    switch (S) {
+                        case "BOILED":
+                            fontList.push(S)
+
+                            let subTittleDiv = outtree[outtree.length - 1]
+                            let newElement = document.createElement('span')
+                            subTittleDiv.appendChild(newElement)
+                            newElement.classList.add('boiled')
+                            outtree.push(newElement)
+                            break
+                    }
+                }
+            }
+
+            // 输出字符
+            function outChar(char) {
+                outtree[outtree.length - 1].innerHTML += char
+            }
+
+            // 忽视
+            let ignore = 0
+
+            //正常速度
+            let NormalSpeed = {
+                ' ': 50,   // 空格延迟时间
+                ',': 200,   // 逗号延迟时间
+                '，': 200,
+                "\\.": 500,
+                "。": 500,
+                '!': 500,  // 感叹号延迟时间
+                '！': 1000,
+                "[a-zA-Z]": 40,
+                "\\?": 50
+            };
+
+            //慢速
+            let SlowSpeed = {
+                ' ': 100,   // 空格延迟时间
+                ',': 1000,   // 逗号延迟时间
+                '，': 1000,
+                '!': 1000,  // 感叹号延迟时间
+                '！': 2000,
+                "[a-zA-Z]": 80,
+                "\\?": 100
+            };
+
+            let SlowDlay = 250
+
+            function typeWriter() {
+                function get_delay(c, speed, d) {
+                    // 根据正则表达式字符串设置延迟时间
+                    for (let pattern in speed) {
+                        if (new RegExp(pattern).test(c)) {
+                            return speed[pattern];
+                        }
+                    }
+                    return d
+                }
+
+                if (text.length > 0) {
+                    let status = getstaus()
+
+                    let char = text.charAt(0)
+                    let out = 1
+                    let setignore = 0
+
+                    console.log("Now:" + status + " Char:" + char) //输出状态
+
+                    //判断状态
+                    switch (status) {
+                        case "NORMAL_OUT": //标准输出
+                            if (char === "#" && !ignore) {
+                                setstatus("SLOW")
+                                out = 0
+                            } else if (char === "\\" && !ignore) {
+                                setignore = 1
+                                out = 0
+                            } else if (char === "_" && !ignore) {
+                                switchFont("BOILED")
+                                out = 0
+                            } else {
+                                delay = get_delay(char, NormalSpeed, NormalDlay)
+                            }
+                            setTimeout(typeWriter, delay)
+                            break
+
+                        case "SLOW": // 慢速输出
+                            if (char === "#" && !ignore) {
+                                popstatus()
+                                out = 0
+                            } else if (char === "_" && !ignore) {
+                                switchFont("BOILED")
+                                out = 0
+                            } else if (char === "\\" && !ignore) {
+                                setignore = 1
+                                out = 0
+                            } else {
+                                delay = get_delay(char, SlowSpeed, SlowDlay)
+                            }
+                            setTimeout(typeWriter, delay)
+                            break
+                    }
+
+                    // 判断忽略
+                    if (setignore) {
+                        ignore = 1
+                    } else {
+                        ignore = 0
+                    }
+
+                    // 将字符添加到 typewriter 元素中
+                    if (out) {
+                        outtree[outtree.length - 1].innerHTML += char
+                    }
+                    text = text.slice(1)
+
+                } else {
+                    status = "NORMAL_OUT"
+                }
+            }
+
+            function typer(Text) {
+                if(Text.length <= 0){
+                    return
+                }
+                document.getElementsByClassName("subtittle")[0].innerHTML = ""
+                text = Text
+                typeWriter()
+            }
+
+            async function main() {
+                var computedStyle = window.getComputedStyle(document.getElementsByClassName("subtittle")[0]);
+                console.log(document.hidden)
+                if (document.hidden) {
+                    setTimeout(main, 1000)
+                } else {
+                    let xhr = new XMLHttpRequest();
+                    xhr.open("GET", "/api/get", true);
+
+                    xhr.onreadystatechange = async function () {
+                        if (xhr.readyState == 4 &&xhr.status == 502) {
+                            await main();
+                        } else if (xhr.readyState == 4 &&xhr.status !== 200) {
+                            console.warn(xhr.statusText);
+                            await main();
+                        } else if(xhr.readyState == 4 && xhr.status == 200) {
+                            let message = xhr.responseText;
+                            console.info("get message: " + message);
+                            typer(message);
+                            await main();
+                        }
+                    }
+                    xhr.send();
+                };
+
+                
+            }
+            window.onload = function () {
+                outtree = [document.getElementsByClassName("subtittle")[0]]
+                typer("小天使請安");
+                main()
+
+            };
+        </script>
+    </head>
+
+    <body>
+        <div id="awa">
+            <div class="subtittle"></div>
+        </div>
+
+    </body>
+
+</html>
